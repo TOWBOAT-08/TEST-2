@@ -28,7 +28,7 @@
         
         // Menyimpan komentar ke database tanpa sanitasi (vulnerability)
         $sql = "INSERT INTO comments (comment) VALUES ('$comment')";
-        if ($conn->query($sql) === TRUE) {
+        if ($conn->query($sql) === true) {
             echo "New comment added successfully";
         } else {
             echo "Error: " . $sql . "<br>" . $conn->error;
