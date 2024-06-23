@@ -26,13 +26,15 @@
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['comment'])) {
         $comment = $_POST['comment'];
         
-        // Menyimpan komentar ke database tanpa sanitasi (vulnerability)
-        $sql = "INSERT INTO comments (comment) VALUES ('$comment')";
-        if ($conn->query($sql) === true) {
+        // Menyimpan komentar ke database dengan prepared statement untuk mencegah SQL Injection
+        $stmt = $conn->prepare("INSERT INTO comments (comment) VALUES (?)");
+        $stmt->bind_param("s", $comment);
+        if ($stmt->execute()) {
             echo "New comment added successfully";
         } else {
-            echo "Error: " . $sql . "<br>" . $conn->error;
+            echo "Error: " . $stmt->error;
         }
+        $stmt->close();
     }
 
     // Menampilkan komentar dari database
@@ -40,13 +42,20 @@
     $result = $conn->query($sql);
 
     if ($result->num_rows > 0) {
-        while($row = $result->fetch_assoc()) {
-            // Menampilkan komentar tanpa sanitasi (vulnerability)
-            echo "<p>" . $row['comment'] . "</p>";
+        while ($row = $result->fetch_assoc()) {
+            // Menampilkan komentar dengan sanitasi untuk mencegah XSS
+            echo "<p>" . htmlspecialchars($row['comment'], ENT_QUOTES, 'UTF-8') . "</p>";
         }
     } else {
         echo "No comments yet.";
     }
+
+    // Menutup koneksi
+    $conn->close();
+    ?>
+</body>
+</html>
+
 
     // Menutup koneksi
     $conn->close();
